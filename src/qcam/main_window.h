@@ -21,6 +21,7 @@
 #include <libcamera/stream.h>
 
 #include "../cam/options.h"
+#include "glwidget.h"
 
 using namespace libcamera;
 
@@ -79,6 +80,7 @@ private:
 
 	QToolBar *toolbar_;
 	ViewFinder *viewfinder_;
+	GLWidget 	*glwidget;
 	std::map<int, std::pair<void *, unsigned int>> mappedBuffers_;
 };
 

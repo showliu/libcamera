@@ -27,6 +27,7 @@
 
 #include "main_window.h"
 #include "viewfinder.h"
+#include "glwidget.h"
 
 using namespace libcamera;
 
@@ -41,8 +42,10 @@ MainWindow::MainWindow(CameraManager *cm, const OptionsParser::Options &options)
 	setWindowTitle(title_);
 	connect(&titleTimer_, SIGNAL(timeout()), this, SLOT(updateTitle()));
 
-	viewfinder_ = new ViewFinder(this);
-	setCentralWidget(viewfinder_);
+	//viewfinder_ = new ViewFinder(this);
+	//setCentralWidget(viewfinder_);
+	glwidget	= new GLWidget(this);
+	setCentralWidget(glwidget);
 	adjustSize();
 
 	ret = openCamera();
@@ -231,13 +234,16 @@ int MainWindow::startCapture()
 	}
 
 	Stream *stream = cfg.stream();
+#if 0
 	ret = viewfinder_->setFormat(cfg.pixelFormat, cfg.size.width,
 				     cfg.size.height);
 	if (ret < 0) {
 		std::cout << "Failed to set viewfinder format" << std::endl;
 		return ret;
 	}
-
+#endif
+	glwidget->setFrameSize(cfg.size.width, cfg.size.height);
+	glwidget->setFixedSize(cfg.size.width, cfg.size.height);
 	adjustSize();
 
 	allocator_ = FrameBufferAllocator::create(camera_);
@@ -348,6 +354,7 @@ void MainWindow::stopCapture()
 
 void MainWindow::saveImageAs()
 {
+#if 0
 	QImage image = viewfinder_->getCurrentImage();
 	QString defaultPath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
 
@@ -361,6 +368,7 @@ void MainWindow::saveImageAs()
 
 	QImageWriter writer(filename);
 	writer.write(image);
+#endif
 }
 
 void MainWindow::requestComplete(Request *request)
@@ -411,7 +419,7 @@ int MainWindow::display(FrameBuffer *buffer)
 	const FrameBuffer::Plane &plane = buffer->planes().front();
 	void *memory = mappedBuffers_[plane.fd.fd()].first;
 	unsigned char *raw = static_cast<unsigned char *>(memory);
-	viewfinder_->display(raw, buffer->metadata().planes[0].bytesused);
-
+	//viewfinder_->display(raw, buffer->metadata().planes[0].bytesused);
+	glwidget->updateFrame(raw);
 	return 0;
 }
