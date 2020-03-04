@@ -5,10 +5,12 @@ qcam_sources = files([
     '../cam/options.cpp',
     'qt_event_dispatcher.cpp',
     'viewfinder.cpp',
+    'glwidget.cpp'
 ])
 
 qcam_moc_headers = files([
     'main_window.h',
+    'glwidget.h'
 ])
 
 qcam_resources = files([
@@ -18,7 +20,7 @@ qcam_resources = files([
 qt5 = import('qt5')
 qt5_dep = dependency('qt5',
                      method : 'pkg-config',
-                     modules : ['Core', 'Gui', 'Widgets'],
+                     modules : ['Core', 'Gui', 'Widgets','OpenGL', 'OpenGLExtensions'],
                      required : false)
 
 if qt5_dep.found()
