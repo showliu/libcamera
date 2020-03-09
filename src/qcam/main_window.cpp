@@ -21,6 +21,7 @@
 #include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
+#include <QStatusBar>
 
 #include <libcamera/camera_manager.h>
 #include <libcamera/version.h>
@@ -238,6 +239,8 @@ int MainWindow::startCapture()
 		return ret;
 	}
 
+	statusBar()->showMessage(QString(cfg.toString().c_str()));
+
 	adjustSize();
 
 	allocator_ = FrameBufferAllocator::create(camera_);
@@ -341,6 +344,8 @@ void MainWindow::stopCapture()
 	isCapturing_ = false;
 
 	config_.reset();
+
+	statusBar()->clearMessage();
 
 	titleTimer_.stop();
 	setWindowTitle(title_);
