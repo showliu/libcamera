@@ -39,6 +39,8 @@ OptionsParser::Options parseOptions(int argc, char *argv[])
 			 "help");
 	parser.addOption(OptSize, &sizeParser, "Set the stream size",
 			 "size", true);
+	parser.addOption(OptOpengl, OptionNone, "Enable YUV format via OpenGL shader",
+			 "opengl");
 
 	OptionsParser::Options options = parser.parse(argc, argv);
 	if (options.isSet(OptHelp))

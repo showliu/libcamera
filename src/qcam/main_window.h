@@ -21,6 +21,7 @@
 #include <libcamera/stream.h>
 
 #include "../cam/options.h"
+#include "glwidget.h"
 
 using namespace libcamera;
 
@@ -30,6 +31,7 @@ enum {
 	OptCamera = 'c',
 	OptHelp = 'h',
 	OptSize = 's',
+	OptOpengl = 'o',
 };
 
 class MainWindow : public QMainWindow
@@ -79,6 +81,7 @@ private:
 
 	QToolBar *toolbar_;
 	ViewFinder *viewfinder_;
+	GLWidget *glwidget_;
 	std::map<int, std::pair<void *, unsigned int>> mappedBuffers_;
 };
 

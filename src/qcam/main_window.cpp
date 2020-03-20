@@ -28,6 +28,7 @@
 
 #include "main_window.h"
 #include "viewfinder.h"
+#include "glwidget.h"
 
 using namespace libcamera;
 
@@ -43,7 +44,14 @@ MainWindow::MainWindow(CameraManager *cm, const OptionsParser::Options &options)
 	connect(&titleTimer_, SIGNAL(timeout()), this, SLOT(updateTitle()));
 
 	viewfinder_ = new ViewFinder(this);
-	setCentralWidget(viewfinder_);
+	glwidget_ = new GLWidget(this);
+
+	if (options_.isSet(OptOpengl)) {
+		setCentralWidget(glwidget_);
+	} else {
+		setCentralWidget(viewfinder_);
+	}
+
 	adjustSize();
 
 	ret = openCamera();
@@ -232,11 +240,17 @@ int MainWindow::startCapture()
 	}
 
 	Stream *stream = cfg.stream();
+
 	ret = viewfinder_->setFormat(cfg.pixelFormat, cfg.size.width,
 				     cfg.size.height);
 	if (ret < 0) {
 		std::cout << "Failed to set viewfinder format" << std::endl;
 		return ret;
+	}
+
+	if (options_.isSet(OptOpengl)) {
+		glwidget_->setFrameSize(cfg.size.width, cfg.size.height);
+		glwidget_->setFixedSize(cfg.size.width, cfg.size.height);
 	}
 
 	statusBar()->showMessage(QString(cfg.toString().c_str()));
@@ -353,7 +367,13 @@ void MainWindow::stopCapture()
 
 void MainWindow::saveImageAs()
 {
-	QImage image = viewfinder_->getCurrentImage();
+	QImage image;
+	if (options_.isSet(OptOpengl)) {
+		image = glwidget_->grabFramebuffer();
+	} else {
+		image = viewfinder_->getCurrentImage();
+	}
+
 	QString defaultPath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
 
 	QString filename = QFileDialog::getSaveFileName(this, "Save Image", defaultPath,
@@ -416,7 +436,12 @@ int MainWindow::display(FrameBuffer *buffer)
 	const FrameBuffer::Plane &plane = buffer->planes().front();
 	void *memory = mappedBuffers_[plane.fd.fd()].first;
 	unsigned char *raw = static_cast<unsigned char *>(memory);
-	viewfinder_->display(raw, buffer->metadata().planes[0].bytesused);
+
+	if (options_.isSet(OptOpengl)) {
+		glwidget_->updateFrame(raw);
+	} else {
+		viewfinder_->display(raw, buffer->metadata().planes[0].bytesused);
+	}
 
 	return 0;
 }
