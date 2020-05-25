@@ -28,6 +28,9 @@
 #include <libcamera/version.h>
 
 #include "dng_writer.h"
+#include "main_window.h"
+#include "viewfinder.h"
+#include "viewfinderGL.h"
 
 using namespace libcamera;
 
@@ -105,10 +108,18 @@ MainWindow::MainWindow(CameraManager *cm, const OptionsParser::Options &options)
 	setWindowTitle(title_);
 	connect(&titleTimer_, SIGNAL(timeout()), this, SLOT(updateTitle()));
 
-	viewfinder_ = new ViewFinder(this);
-	connect(viewfinder_, &ViewFinder::renderComplete,
-		this, &MainWindow::queueRequest);
-	setCentralWidget(viewfinder_);
+	if (options_.isSet(OptOpenGL)) {
+		viewfinder_ = new ViewFinderGL(this);
+		connect(dynamic_cast<ViewFinderGL *>(viewfinder_), &ViewFinderGL::renderComplete,
+				this, &MainWindow::queueRequest);
+		setCentralWidget(dynamic_cast<ViewFinderGL *>(viewfinder_));
+	} else {
+		viewfinder_ = new ViewFinder(this);
+		connect(dynamic_cast<ViewFinder *>(viewfinder_), &ViewFinder::renderComplete,
+				this, &MainWindow::queueRequest);
+		setCentralWidget(dynamic_cast<ViewFinder *>(viewfinder_));
+	}
+
 	adjustSize();
 
 	/* Hotplug/unplug support */

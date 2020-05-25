@@ -13,6 +13,8 @@
 #include <QList>
 #include <QImage>
 #include <QMutex>
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions>
 #include <QSize>
 #include <QWidget>
 
@@ -28,15 +30,29 @@ struct MappedBuffer {
 	size_t size;
 };
 
-class ViewFinder : public QWidget
+class ViewFinderHandler
+{
+public:
+	ViewFinderHandler();
+	virtual ~ViewFinderHandler();
+
+	const QList<libcamera::PixelFormat> &nativeFormats() const;
+
+	virtual int setFormat(const libcamera::PixelFormat &format, const QSize &size) =0;
+	virtual void render(libcamera::FrameBuffer *buffer, MappedBuffer *map) =0;
+	virtual void stop() =0;
+
+	virtual QImage getCurrentImage() =0;
+
+};
+
+class ViewFinder : public QWidget, public ViewFinderHandler
 {
 	Q_OBJECT
 
 public:
 	ViewFinder(QWidget *parent);
 	~ViewFinder();
-
-	const QList<libcamera::PixelFormat> &nativeFormats() const;
 
 	int setFormat(const libcamera::PixelFormat &format, const QSize &size);
 	void render(libcamera::FrameBuffer *buffer, MappedBuffer *map);
@@ -67,5 +83,4 @@ private:
 	QImage image_;
 	QMutex mutex_; /* Prevent concurrent access to image_ */
 };
-
 #endif /* __QCAM_VIEWFINDER__ */

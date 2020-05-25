@@ -38,6 +38,7 @@ enum {
 	OptCamera = 'c',
 	OptHelp = 'h',
 	OptStream = 's',
+	OptOpenGL = 'o',
 };
 
 class CaptureRequest
@@ -102,7 +103,7 @@ private:
 	QAction *startStopAction_;
 	QComboBox *cameraCombo_;
 	QAction *saveRaw_;
-	ViewFinder *viewfinder_;
+	ViewFinderHandler *viewfinder_;
 
 	QIcon iconPlay_;
 	QIcon iconStop_;

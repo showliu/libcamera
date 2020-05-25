@@ -33,6 +33,20 @@ static const QMap<libcamera::PixelFormat, QImage::Format> nativeFormats
 	{ libcamera::formats::BGR888, QImage::Format_RGB888 },
 };
 
+ViewFinderHandler::ViewFinderHandler()
+{
+}
+
+ViewFinderHandler::~ViewFinderHandler()
+{
+}
+
+const QList<libcamera::PixelFormat> &ViewFinderHandler::nativeFormats() const
+{
+	static const QList<libcamera::PixelFormat> formats = ::nativeFormats.keys();
+	return formats;
+}
+
 ViewFinder::ViewFinder(QWidget *parent)
 	: QWidget(parent), buffer_(nullptr)
 {
@@ -41,12 +55,6 @@ ViewFinder::ViewFinder(QWidget *parent)
 
 ViewFinder::~ViewFinder()
 {
-}
-
-const QList<libcamera::PixelFormat> &ViewFinder::nativeFormats() const
-{
-	static const QList<libcamera::PixelFormat> formats = ::nativeFormats.keys();
-	return formats;
 }
 
 int ViewFinder::setFormat(const libcamera::PixelFormat &format,

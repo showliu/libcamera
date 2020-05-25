@@ -35,6 +35,8 @@ OptionsParser::Options parseOptions(int argc, char *argv[])
 			 "help");
 	parser.addOption(OptStream, &streamKeyValue,
 			 "Set configuration of a camera stream", "stream", true);
+	parser.addOption(OptOpenGL, OptionNone, "Render YUV formats frame via OpenGL shader",
+			 "opengl");
 
 	OptionsParser::Options options = parser.parse(argc, argv);
 	if (options.isSet(OptHelp))
