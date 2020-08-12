@@ -35,6 +35,9 @@ OptionsParser::Options parseOptions(int argc, char *argv[])
 			 "help");
 	parser.addOption(OptStream, &streamKeyValue,
 			 "Set configuration of a camera stream", "stream", true);
+	parser.addOption(OptRender, OptionString,
+			 "Choose the render type use qt|gles", "render",
+			 ArgumentRequired, "render");
 
 	OptionsParser::Options options = parser.parse(argc, argv);
 	if (options.isSet(OptHelp))

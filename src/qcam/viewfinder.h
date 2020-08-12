@@ -20,12 +20,18 @@
 #include <libcamera/pixel_format.h>
 
 #include "format_converter.h"
+#include "renderer.h"
 
 class QImage;
 
 struct MappedBuffer {
 	void *memory;
 	size_t size;
+};
+
+enum RenderType {
+	RenderGLES,
+	RenderQT,
 };
 
 class ViewFinder : public QWidget
@@ -43,6 +49,7 @@ public:
 	void stop();
 
 	QImage getCurrentImage();
+	void setRender(std::string render_type);
 
 Q_SIGNALS:
 	void renderComplete(libcamera::FrameBuffer *buffer);
@@ -66,6 +73,9 @@ private:
 	libcamera::FrameBuffer *buffer_;
 	QImage image_;
 	QMutex mutex_; /* Prevent concurrent access to image_ */
+
+	Renderer *renderer_; /* OpenGL renderer */
+	RenderType renderType_;
 };
 
 #endif /* __QCAM_VIEWFINDER__ */

@@ -38,6 +38,7 @@ enum {
 	OptCamera = 'c',
 	OptHelp = 'h',
 	OptStream = 's',
+	OptRender = 'r',
 };
 
 class CaptureRequest
