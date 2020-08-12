@@ -106,6 +106,8 @@ MainWindow::MainWindow(CameraManager *cm, const OptionsParser::Options &options)
 	connect(&titleTimer_, SIGNAL(timeout()), this, SLOT(updateTitle()));
 
 	viewfinder_ = new ViewFinder(this);
+	if (options_.isSet(OptRender))
+		viewfinder_->setRender(options_[OptRender].toString().c_str());
 	connect(viewfinder_, &ViewFinder::renderComplete,
 		this, &MainWindow::queueRequest);
 	setCentralWidget(viewfinder_);

@@ -20,6 +20,7 @@
 #include <libcamera/formats.h>
 
 #include "format_converter.h"
+#include "renderer.h"
 
 static const QMap<libcamera::PixelFormat, QImage::Format> nativeFormats
 {
@@ -34,13 +35,15 @@ static const QMap<libcamera::PixelFormat, QImage::Format> nativeFormats
 };
 
 ViewFinder::ViewFinder(QWidget *parent)
-	: QWidget(parent), buffer_(nullptr)
+	: QWidget(parent), buffer_(nullptr), renderer_(nullptr)
 {
 	icon_ = QIcon(":camera-off.svg");
 }
 
 ViewFinder::~ViewFinder()
 {
+	if (renderer_)
+		delete renderer_;
 }
 
 const QList<libcamera::PixelFormat> &ViewFinder::nativeFormats() const
@@ -59,14 +62,26 @@ int ViewFinder::setFormat(const libcamera::PixelFormat &format,
 	 * the destination image.
 	 */
 	if (!::nativeFormats.contains(format)) {
-		int ret = converter_.configure(format, size);
-		if (ret < 0)
-			return ret;
+		if ((renderType_ == RenderGLES) &&
+		    renderer_->configure(format, size)) {
+			qInfo() << "Using OpenGL shader format conversion from "
+				<< format.toString().c_str();
+		} else {
+			int ret = converter_.configure(format, size);
+			if (ret < 0)
+				return ret;
 
-		image_ = QImage(size, QImage::Format_RGB32);
+			image_ = QImage(size, QImage::Format_RGB32);
 
-		qInfo() << "Using software format conversion from"
-			<< format.toString().c_str();
+			qInfo() << "Using software format conversion from"
+				<< format.toString().c_str();
+
+			if (renderType_ == RenderGLES) {
+				renderType_ = RenderQT;
+				qInfo() << "Using QT rendering due to "
+					<< "OpenGL shader configure failed.";
+			}
+		}
 	} else {
 		qInfo() << "Zero-copy enabled";
 	}
@@ -111,7 +126,11 @@ void ViewFinder::render(libcamera::FrameBuffer *buffer, MappedBuffer *map)
 			 * Otherwise, convert the format and release the frame
 			 * buffer immediately.
 			 */
-			converter_.convert(memory, size, &image_);
+			if (renderType_ == RenderGLES) {
+				renderer_->render(memory);
+				image_ = QImage(renderer_->toImage());
+			} else
+				converter_.convert(memory, size, &image_);
 		}
 	}
 
@@ -178,4 +197,15 @@ void ViewFinder::paintEvent(QPaintEvent *)
 QSize ViewFinder::sizeHint() const
 {
 	return size_.isValid() ? size_ : QSize(640, 480);
+}
+
+void ViewFinder::setRender(std::string render_type)
+{
+	if (render_type == "gles") {
+		renderer_ = new Renderer();
+		renderer_->initializeGL();
+		renderType_ = RenderGLES;
+	} else {
+		renderType_ = RenderQT;
+	}
 }
