@@ -26,6 +26,8 @@
 
 #include "../cam/stream_options.h"
 #include "viewfinder.h"
+#include "viewfinder_gl.h"
+#include "viewfinder_qt.h"
 
 using namespace libcamera;
 
@@ -37,6 +39,7 @@ class HotplugEvent;
 enum {
 	OptCamera = 'c',
 	OptHelp = 'h',
+	OptRendered = 'r',
 	OptStream = 's',
 };
 

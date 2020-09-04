@@ -95,6 +95,9 @@ MainWindow::MainWindow(CameraManager *cm, const OptionsParser::Options &options)
 {
 	int ret;
 
+	/* Render Type Qt or GLES, and set Qt by default */
+	std::string renderType_ = "qt";
+
 	/*
 	 * Initialize the UI: Create the toolbar, set the window title and
 	 * create the viewfinder widget.
@@ -105,10 +108,30 @@ MainWindow::MainWindow(CameraManager *cm, const OptionsParser::Options &options)
 	setWindowTitle(title_);
 	connect(&titleTimer_, SIGNAL(timeout()), this, SLOT(updateTitle()));
 
-	viewfinder_ = new ViewFinder(this);
-	connect(viewfinder_, &ViewFinder::renderComplete,
-		this, &MainWindow::queueRequest);
-	setCentralWidget(viewfinder_);
+	if (options_.isSet(OptRendered))
+		renderType_ = options_[OptRendered].toString();
+
+	if (renderType_ == "qt") {
+		ViewFinderQt *viewfinder = new ViewFinderQt(this);
+		connect(viewfinder, &ViewFinderQt::renderComplete,
+			this, &MainWindow::queueRequest);
+		viewfinder_ = viewfinder;
+		setCentralWidget(viewfinder);
+#ifndef QT_NO_OPENGL
+	} else if (renderType_ == "gles") {
+		ViewFinderGL *viewfinder = new ViewFinderGL(this);
+		connect(viewfinder, &ViewFinderGL::renderComplete,
+			this, &MainWindow::queueRequest);
+		viewfinder_ = viewfinder;
+		setCentralWidget(viewfinder);
+#endif
+	} else {
+		qWarning() << "Invalid render type"
+			   << QString::fromStdString(renderType_);
+		quit();
+		return;
+	}
+
 	adjustSize();
 
 	/* Hotplug/unplug support */
