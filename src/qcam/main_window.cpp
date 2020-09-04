@@ -91,7 +91,7 @@ private:
 
 MainWindow::MainWindow(CameraManager *cm, const OptionsParser::Options &options)
 	: saveRaw_(nullptr), options_(options), cm_(cm), allocator_(nullptr),
-	  isCapturing_(false), captureRaw_(false)
+	  isCapturing_(false), captureRaw_(false), renderType_("qt")
 {
 	int ret;
 
@@ -105,10 +105,29 @@ MainWindow::MainWindow(CameraManager *cm, const OptionsParser::Options &options)
 	setWindowTitle(title_);
 	connect(&titleTimer_, SIGNAL(timeout()), this, SLOT(updateTitle()));
 
-	viewfinder_ = new ViewFinder(this);
-	connect(viewfinder_, &ViewFinder::renderComplete,
-		this, &MainWindow::queueRequest);
-	setCentralWidget(viewfinder_);
+	if (options_.isSet(OptRender))
+		renderType_ = options_[OptRender].toString().c_str();
+
+	if (renderType_ == "qt") {
+		viewfinder_ = new ViewFinderQt(this);
+		ViewFinderQt *vf = dynamic_cast<ViewFinderQt *>(viewfinder_);
+		connect(vf, &ViewFinderQt::renderComplete,
+			this, &MainWindow::queueRequest);
+		setCentralWidget(vf);
+	} else if (renderType_ == "gles") {
+		viewfinder_ = new ViewFinderGL(this);
+		ViewFinderGL *vf = dynamic_cast<ViewFinderGL *>(viewfinder_);
+		connect(vf, &ViewFinderGL::renderComplete,
+			this, &MainWindow::queueRequest);
+		setCentralWidget(vf);
+	} else {
+		qWarning() << "Render Type:"
+			   << QString::fromStdString(renderType_)
+			   << " is not support.";
+		quit();
+		return;
+	}
+
 	adjustSize();
 
 	/* Hotplug/unplug support */

@@ -26,6 +26,8 @@
 
 #include "../cam/stream_options.h"
 #include "viewfinder.h"
+#include "viewfinder_gl.h"
+#include "viewfinder_qt.h"
 
 using namespace libcamera;
 
@@ -38,6 +40,7 @@ enum {
 	OptCamera = 'c',
 	OptHelp = 'h',
 	OptStream = 's',
+	OptRender = 'r',
 };
 
 class CaptureRequest
@@ -134,6 +137,9 @@ private:
 	QElapsedTimer frameRateInterval_;
 	uint32_t previousFrames_;
 	uint32_t framesCaptured_;
+
+	/* Render Type Qt or GLES */
+	std::string renderType_;
 };
 
 #endif /* __QCAM_MAIN_WINDOW__ */
